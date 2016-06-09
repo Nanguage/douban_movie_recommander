@@ -34,8 +34,13 @@ pip install bs4
     Local updated!(in '/home/1.mr_cache') run again with other option!
 
 #### 使用
-
+运行后会在浏览器内打卡两个页面：豆瓣上的相应页面、bilibili上对条目的搜索
+![use](http://cuntuku.com/images/2016/06/09/use.gif)
 
 #### [-i]打印信息
+在终端打印出“想看”list的所有信息
+![info](http://cuntuku.com/images/2016/06/09/info.gif)
 
 #### [-t]指定tag对结果进行筛选
+指定标签来限定推荐或打印的范围
+![info](http://cuntuku.com/images/2016/06/09/tag_info.gif)
