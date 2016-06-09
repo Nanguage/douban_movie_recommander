@@ -28,6 +28,7 @@ pip install bs4
 
 #### [-u]更新本地缓存
 为了提高程序运行速度，在本地设置了缓存。使用"-u"参数对本地缓存进行更新，第一次运行时自动获取缓存。"-c"参数可以清除本地缓存。
+
     ⋊> ~ python movie_recommender -u
     Updating ...
     Local updated!(in '/home/1.mr_cache') run again with other option!
