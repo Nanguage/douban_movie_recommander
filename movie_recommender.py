@@ -60,7 +60,6 @@ def get_local_cache(file_path):
         result = pickle.load(f)
     return result
     
-
 def get_page_list(url):
     """get all wish page
 
@@ -68,13 +67,18 @@ def get_page_list(url):
     :returns: string
 
     """
+    page_list = []
     try:
         soup = BeautifulSoup(urllib2.urlopen(url).read(), "html.parser")
-        page_list = [i['href'] for i in soup.find('div', class_='paginator').find_all('a')]
+        # amount of items
+        item_count = int(soup.find(class_="subject-num").get_text().split('/')[1])
     except Exception as e:
-        #print e
-        page_list = []
-    page_list.append(url)
+        print(e)
+    pages_count = item_count / 15
+    for i in range(pages_count + 1):
+        page_url = MY_WISH_URL + "?start=%s&sort=time&rating=all&filter=all&mode=grid"%(i * 15)
+        print(page_url)
+        page_list.append(page_url)
     return page_list
 
 def print_info(movie_list):
