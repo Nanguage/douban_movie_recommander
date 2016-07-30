@@ -1,5 +1,5 @@
 # DouRecommander
-这是一个简单的python命令行程序，它能够根据你给出的douban“想看”页面url获取所有你想看的电影的列表，并从中随机选取一个推荐给你。早日摆脱选择困难#_#
+这是一个简单的python(python3)命令行程序，它能够根据你给出的douban“想看”页面url获取所有你想看的电影的列表，并从中随机选取一个推荐给你。早日摆脱选择困难#_#
 
 ## 实现思路
 爬取“想看”页面的上所有条目的标题、url、tags信息，在本地使用pickle对爬取到的信息进行持久化，此后请求时从中获取信息进行推荐或打印。
@@ -8,7 +8,7 @@
 #### 第三方库依赖
 BeautifulSoup
 ```
-pip install bs4
+pip3 install -r "requirments.txt"
 ```
 
 #### 设置
@@ -35,12 +35,9 @@ pip install bs4
 
 #### 使用
 运行后会在浏览器内打卡两个页面：豆瓣上的相应页面、bilibili上对条目的搜索
-![use](http://cuntuku.com/images/2016/06/09/use.gif)
 
 #### [-i]打印信息
 在终端打印出“想看”list的所有信息
-![info](http://cuntuku.com/images/2016/06/09/info.gif)
 
 #### [-t]指定tag对结果进行筛选
 指定标签来限定推荐或打印的范围
-![info](http://cuntuku.com/images/2016/06/09/tag_info.gif)
