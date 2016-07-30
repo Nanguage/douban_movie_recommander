@@ -17,8 +17,8 @@ import requests
 from requests.exceptions import MissingSchema
 from pyquery import PyQuery
 
-MY_URL = "https://www.douban.com/people/115693512" # 这里填入豆瓣主页url
-MY_WISH_URL = MY_URL.replace('www', 'movie') + '/wish'
+MY_URL = "https://www.douban.com/people/115693512/" # 这里填入豆瓣主页url
+MY_WISH_URL = MY_URL.replace('www', 'movie') + 'wish'
 CACHE_FILE_PATH = './' \
         + re.search('.+/(.+)/.*$',MY_WISH_URL).group(1) + '.mr_cache'
 
