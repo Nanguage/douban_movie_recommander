@@ -11,7 +11,10 @@ import datetime
 import webbrowser
 
 import gevent
+from gevent.queue import Queue
+from gevent import monkey; monkey.patch_all()
 import requests
+from requests.exceptions import MissingSchema
 from pyquery import PyQuery
 
 MY_URL = "https://www.douban.com/people/115693512" # 这里填入豆瓣主页url
@@ -28,63 +31,41 @@ headers = {
 
 
 def get_movie_list(url):
-    """get the movie from the url
+    """get the movie's info from the url
 
-    :url: string
     :returns: [{'title':'', 'url':'', 'tags':['','',...]},{},...]
 
     """
     movie_list = []
-    page_list = get_page_list(url)
-    for p in page_list:
-        html = s.get(p, headers=headers).text
-        doc = PyQuery(html)
-        item_nodes = doc('div.item')
-        for item in item_nodes:
-            item = doc(item)
-            info = {}
-            title = item('li.title').text()
-            item_url = item('li.title a').attr('href')
-            tag_node = item('span.tags')
-            tags = [] if tag_node == [] else tag_node.text().split(' ')[1:]
-            info['title'] = re.sub('\s', '', title)
-            info['url'] = item_url
-            info['tags'] = tags
-            movie_list.append(info)
+    page_queue = get_page_queue(url)
+    def get_one_page_info():
+        """get one page's info and add to movie_list"""
+        while not page_queue.empty():
+            p = page_queue.get()
+            print(p)
+            html = s.get(p, headers=headers).text
+            doc = PyQuery(html)
+            item_nodes = doc('div.item')
+            for item in item_nodes:
+                item = doc(item)
+                info = {}
+                title = item('li.title').text()
+                item_url = item('li.title a').attr('href')
+                tag_node = item('span.tags')
+                tags = [] if tag_node == [] else tag_node.text().split(' ')[1:]
+                info['title'] = re.sub('\s', '', title)
+                info['url'] = item_url
+                info['tags'] = tags
+                movie_list.append(info)
+    # start 4 greenlets
+    gevent_list = [gevent.spawn(get_one_page_info) for i in range(4)]
+    gevent.joinall(gevent_list)
     return movie_list
 
 
-def save_movie_list(movie_list, file_path):
-    """use pickle save movie_list
-
-    :movie_list:
-    :file_path: string
-
-    """
-    with open(file_path, 'wb') as f:
-        pickle.dump(movie_list, f)
-
-
-def get_local_cache(file_path):
-    """read the movie_list from cache
-
-    :file_path: string
-    :return: 
-
-    """
-    with open(file_path, 'rb') as f:
-        result = pickle.load(f)
-    return result
-    
-
-def get_page_list(url):
-    """get all wish page
-
-    :douban_url: srting
-    :returns: string
-
-    """
-    page_list = []
+def get_page_queue(url):
+    """get all wish page to a queue"""
+    page_queue = Queue()
     try:
         html = s.get(url, headers=headers).text
     except MissingSchema as e:
@@ -95,10 +76,23 @@ def get_page_list(url):
     item_count = int(doc('.subject-num').text().split('/')[1])
     pages_count = item_count // 15
     for i in range(pages_count + 1):
-        page_url = MY_WISH_URL + "?start=%s&sort=time&rating=all&filter=all&mode=grid"%(i * 15)
-        print(page_url)
-        page_list.append(page_url)
-    return page_list
+        page_url = url + "?start=%s&sort=time&rating=all&filter=all&mode=grid"%(i * 15)
+        page_queue.put(page_url)
+    return page_queue
+
+
+def save_movie_list(movie_list, file_path):
+    """use pickle save movie_list"""
+    with open(file_path, 'wb') as f:
+        pickle.dump(movie_list, f)
+
+
+def get_local_cache(file_path):
+    """read the movie_list from cache"""
+    with open(file_path, 'rb') as f:
+        result = pickle.load(f)
+    return result
+    
 
 def print_info(movie_list):
     '''print the information of all movies'''
@@ -115,35 +109,19 @@ def print_info(movie_list):
 
 
 def get_bilibili_query(item_title):
-    """get the bilibili query page url
-
-    :item_title: string
-    :returns: string
-
-    """
+    """get the bilibili query page url"""
     base_url = "http://search.bilibili.com/all?keyword="
-    result = base_url + item_title
+    result = base_url + item_title.split('/')[0]
     return result
 
 
 def get_one_movie_randomly(movie_list):
-    """get one movie forom movie_list randomly
-
-    :movie_list: list
-    :returns: dict
-
-    """
     random.seed(datetime.datetime.now())
     one_movie = random.choice(movie_list)
     return one_movie
 
 
 def filiter_by_tags(movie_list, tags):
-    """
-    :movie_list
-    :tags: ["","", ...]
-    :return:
-    """
     result = []
     for movie in movie_list:
         for t in tags:
@@ -184,5 +162,5 @@ if __name__ == "__main__":
     else:
         random_one = get_one_movie_randomly(movie_list)
         webbrowser.open_new(random_one['url'])
-        webbrowser.open_new(get_bilibili_query(random_one['url']))
+        webbrowser.open_new(get_bilibili_query(random_one['title']))
         print("Here is one movie you may be want to enjoy! It opened in your browser.")
